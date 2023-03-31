@@ -25,10 +25,10 @@ const Stream = require('stream');
 const merge = require('deepmerge');
 const bunyan = require('bunyan');
 
-const logger = (() => {
+const defaultLogger = (() => {
   try {
     return bunyan.createLogger({
-      name: 'Cluster-Updater',
+      name: 'Request-util.request',
       streams: [{
         level: (process.env.LOG_LEVEL || 'info'),
         stream: process.stdout // log LOG_LEVEL and above to stdout
@@ -38,7 +38,7 @@ const logger = (() => {
   } catch (err) {
     // unknown log level given, default to info
     return bunyan.createLogger({
-      name: 'Cluster-Updater',
+      name: 'Request-util.request',
       streams: [{
         level: ('info'),
         stream: process.stdout // log level and above to stdout
@@ -67,7 +67,7 @@ const allowedRequestOptions = [
   'encoding',                 // -> whether to handle response payload as binary (`encoding=null` only expected value)
 ];
 
-function requestOpts_to_axiosOpts( requestOptions ) {
+function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
   const invalidRequestOptions = Object.getOwnPropertyNames( requestOptions ).filter( n => !allowedRequestOptions.includes( n ) );
   if( invalidRequestOptions.length > 0 ) {
     logger.error( `Unsupported request options could not be converted to axios options: ${invalidRequestOptions.join(',')}` );
@@ -201,7 +201,7 @@ function axiosResponse_to_requestResponse( requestOptions, axiosResponse ) {
   return( requestOptions.resolveWithFullResponse ? requestResponse : requestResponse.body );
 }
 
-function getStream( requestOptions ) {
+function getStream( requestOptions, logger=defaultLogger ) {
   //COMPARE const useLegacyRequest = fs.pathExistsSync(`./${requestTriggerFile}`);
   //COMPARE if( useLegacyRequest ) {
   //COMPARE   return request( requestOptions );
@@ -209,7 +209,7 @@ function getStream( requestOptions ) {
 
   const axiosStream = new Stream.PassThrough();
 
-  const axiosOptions = requestOpts_to_axiosOpts( requestOptions );
+  const axiosOptions = requestOpts_to_axiosOpts( requestOptions, logger );
   axiosOptions.responseType = 'stream';
 
   // Ensure stream can be aborted in same way as `request` library stream
@@ -243,13 +243,13 @@ function getStream( requestOptions ) {
 }
 
 // Do a request with `request` library options
-async function doRequest( requestOptions ) {
+async function doRequest( requestOptions, logger=defaultLogger ) {
   //COMPARE const useLegacyRequest = await fs.pathExists(`./${requestTriggerFile}`);
   //COMPARE if( useLegacyRequest ) {
   //COMPARE   return await requestPromiseNative( requestOptions );
   //COMPARE }
 
-  const axiosOptions = requestOpts_to_axiosOpts( requestOptions );
+  const axiosOptions = requestOpts_to_axiosOpts( requestOptions, logger );
   const axiosResponse = await axios( axiosOptions );
   const requestResponse = axiosResponse_to_requestResponse( requestOptions, axiosResponse );
   return( requestResponse );
