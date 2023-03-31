@@ -4,7 +4,7 @@ node_js:
   - "16"
 
 before_install:
-  - echo "$DOCKERHUB_TOKEN" | docker login -u "icdevops" --password-stdin
+  - echo "no before_install steps needed"
 
 script:
   - if [ "${TRAVIS_PULL_REQUEST}" != "false" ]; then npx audit-ci --config audit-ci.json; else npx audit-ci --config audit-ci.json || true; fi
