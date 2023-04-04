@@ -18,6 +18,7 @@ const assert = require('chai').assert;
 const nock = require('nock');
 const Stream = require('stream');
 const bunyan = require('bunyan');
+const Https = require('https');
 
 const RequestLib = require('../src/request');
 
@@ -178,6 +179,35 @@ describe('request', () => {
           simple: false,
         }).then( response => {
           assert.deepEqual( response, testPayload );
+          done();
+        }).catch( error => {
+          assert.fail(`Promise was rejected: ${error}`);
+        } );
+      } catch (err) {
+        assert.fail(`Error was thrown: ${err}`);
+      }
+    });
+
+    it('should handle GET with https agent', (done) => {
+      const testPayload = { testKey: 'testVal' };
+
+      // Start nock, returning testPayload
+      nock('https://localhost:666')
+        .get('/testEndpoint')
+        .reply(406, testPayload);
+
+      try {
+        // Make request, verify response
+        RequestLib.doRequest({
+          method: 'get',
+          baseUrl: 'https://localhost:666',
+          uri: '/testEndpoint',
+          resolveWithFullResponse: true,
+          json: true,
+          simple: false,
+          agent: new Https.Agent()
+        }).then( response => {
+          assert.deepEqual( response.body, testPayload );
           done();
         }).catch( error => {
           assert.fail(`Promise was rejected: ${error}`);

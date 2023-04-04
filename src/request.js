@@ -61,6 +61,7 @@ const allowedRequestOptions = [
   'simple',                   // -> whether to error/reject if not 2xx response
   'resolveWithFullResponse',  // -> whether to resolve with just the response payload or the full response (ONLY `statusCode` and `body` should be used)
   'timeout',                  // No conversion
+  'agent',                    // No conversion
   'ca',                       // -> Https.Agent
   'cert',                     // -> Https.Agent
   'key',                      // -> Https.Agent
@@ -152,23 +153,28 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
   }
   delete axiosOptions.encoding;
 
-  // HTTPS options
-  if( axiosOptions.ca || axiosOptions.key || axiosOptions.cert ) {
+  // HTTP/HTTPS agent options
+  if( axiosOptions.agent ) {
+    if (axiosOptions.url.startsWith('https')) {
+      axiosOptions.httpsAgent = axiosOptions.agent;
+    } else {
+      axiosOptions.httpAgent = axiosOptions.agent;
+    }
+  }
+  else if( axiosOptions.ca || axiosOptions.key || axiosOptions.cert ) {
     const agentOptions = {};
     if( axiosOptions.ca ) {
       agentOptions.ca = axiosOptions.ca;
-      delete axiosOptions.ca;
     }
     if( axiosOptions.cert ) {
       agentOptions.cert = axiosOptions.cert;
-      delete axiosOptions.cert;
     }
     if( axiosOptions.key ) {
       agentOptions.key = axiosOptions.key;
-      delete axiosOptions.key;
     }
     axiosOptions.httpsAgent = new Https.Agent(agentOptions);
   }
+  delete axiosOptions.agent;
   delete axiosOptions.ca;
   delete axiosOptions.cert;
   delete axiosOptions.key;
