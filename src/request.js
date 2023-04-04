@@ -61,7 +61,7 @@ const allowedRequestOptions = [
   'simple',                   // -> whether to error/reject if not 2xx response
   'resolveWithFullResponse',  // -> whether to resolve with just the response payload or the full response (ONLY `statusCode` and `body` should be used)
   'timeout',                  // No conversion
-  'agent',                    // No conversion
+  'agent',                    // Assign to httpAgent or httpsAgent depending on url protocol
   'ca',                       // -> Https.Agent
   'cert',                     // -> Https.Agent
   'key',                      // -> Https.Agent
