@@ -16,6 +16,7 @@
 
 //COMPARE const fs = require('fs-extra');
 //COMPARE const request = require('request');
+//COMPARE const requestretry = require('requestretry');
 //COMPARE const requestPromiseNative = require('request-promise-native');
 //COMPARE const requestTriggerFile = 'USE_LEGACY_REQUEST_LIBRARY';
 
@@ -261,7 +262,51 @@ async function doRequest( requestOptions, logger=defaultLogger ) {
   return( requestResponse );
 }
 
+/*
+Do a request with `requestretry` library options
+The retry strategy used is always equivalent to `request.RetryStrategies.HTTPOrNetworkError`,
+i.e. "(default) retry on 5xx or network errors"
+*/
+async function doRequestRetry( requestRetryOptions, logger=defaultLogger ) {
+  //COMPARE const useLegacyRequest = await fs.pathExists(`./${requestTriggerFile}`);
+  //COMPARE if( useLegacyRequest ) {
+  //COMPARE return requestretry( requestRetryOptions );
+  //COMPARE }
+
+  /*
+  Convert to `request` library options (the `requestretry` lib always returns full response
+  with `statusCode` and `body`, even if `resolveWithFullResponse` not specified).
+  */
+  const requestOptions = merge( {resolveWithFullResponse: true}, requestRetryOptions );
+  delete requestOptions.retryDelay;
+  delete requestOptions.maxAttempts;
+  delete requestOptions.retryStrategy;
+
+  // Convert to `axios` library options
+  const axiosOptions = requestOpts_to_axiosOpts( requestOptions, logger );
+
+  let axiosResponse;
+  let triesRemaining = requestRetryOptions.maxAttempts || 5;
+  while( triesRemaining-- > 0 ) {
+    // If an error occurs making the request, immediately throw it.
+    axiosResponse = await axios( axiosOptions );
+    if( axiosResponse.status >= 200 && axiosResponse.status < 500 ) {
+      // Got a good response, no more retries
+      break;
+    }
+    // Got a bad response but can still retry after a delay
+    if( triesRemaining > 0 ) {
+      await new Promise(resolve => setTimeout(resolve, requestRetryOptions.retryDelay || 5000));
+    }
+  }
+
+  // If got a good response, or ran out of retries but got _valid_ responses, return the last response converted to `request` lib format
+  const requestResponse = axiosResponse_to_requestResponse( requestOptions, axiosResponse );
+  return( requestResponse );
+}
+
 module.exports = {
   getStream,
-  doRequest
+  doRequest,
+  doRequestRetry
 };
