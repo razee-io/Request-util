@@ -288,19 +288,13 @@ async function doRequestRetry( requestRetryOptions, logger=defaultLogger ) {
   let axiosResponse;
   let triesRemaining = requestRetryOptions.maxAttempts || 5;
   while( triesRemaining-- > 0 ) {
-    try {
-      axiosResponse = await axios( axiosOptions );
-      if( axiosResponse.status >= 200 && axiosResponse.status < 500 ) {
-        // Got a good response, no more retries
-        break;
-      }
-      // Got a bad response but can still retry
+    // If an error occurs making the request, immediately throw it.
+    axiosResponse = await axios( axiosOptions );
+    if( axiosResponse.status >= 200 && axiosResponse.status < 500 ) {
+      // Got a good response, no more retries
+      break;
     }
-    catch( e ) {
-      // If an error occurs making the request, immediately throw it.
-      throw( e );
-    }
-    // If tries remain, delay before retrying
+    // Got a bad response but can still retry after a delay
     if( triesRemaining > 0 ) {
       await new Promise(resolve => setTimeout(resolve, requestRetryOptions.retryDelay || 5000));
     }
