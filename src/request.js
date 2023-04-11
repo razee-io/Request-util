@@ -280,7 +280,7 @@ async function doRequestRetry( requestRetryOptions, logger=defaultLogger ) {
   Convert to `request` library options (the `requestretry` lib always returns full response
   with `statusCode` and `body`, even if `resolveWithFullResponse` not specified).
   */
-  const requestOptions = merge( {resolveWithFullResponse: true}, requestRetryOptions );
+  const requestOptions = merge( {resolveWithFullResponse: true, simple: false}, requestRetryOptions );
   delete requestOptions.retryDelay;
   delete requestOptions.maxAttempts;
   delete requestOptions.retryStrategy;
