@@ -180,6 +180,13 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
 
   // AWS4 options
   if( axiosOptions.aws && axiosOptions.aws.key && axiosOptions.aws.secret ) {
+    // Only the `aws.key` and `aws.secret` options are supported at this time -- ensure any other options result in an exception
+    const invalidAWSOptions = Object.getOwnPropertyNames( axiosOptions.aws ).filter( n => !['key', 'secret'].includes( n ) );
+    if( invalidAWSOptions.length > 0 ) {
+      logger.error( `Unsupported aws options could not be converted to axios options: ${invalidAWSOptions.join(',')}` );
+      throw new Error( `Invalid aws options: ${invalidAWSOptions.join(',')}` );
+    }
+    
     // The URL host and path does not come naturally; it is parsed using the node.js `URL` library
     // The `AWS4` library requires an uppercase method to run properly, unlike request-util
     const urlObj = url.parse(axiosOptions.url, true);
