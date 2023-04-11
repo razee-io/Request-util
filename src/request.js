@@ -76,9 +76,12 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     throw new Error( `Invalid request options: ${invalidRequestOptions.join(',')}` );
   }
 
-  // Clone requestOptions (so it is not accidentally modified), set default method (not strictly necessary as `get` is axios default)
+  // Clone requestOptions (so it is not accidentally modified), with key `request` defaults
+  // - method (not strictly necessary as `get` is axios default)
+  // - simple (true default)
   const axiosOptions = merge( {
     method: 'get',
+    simple: true
   }, requestOptions );
 
   // uri -> url
