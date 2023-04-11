@@ -68,7 +68,7 @@ const allowedRequestOptions = [
   'cert',                     // -> Https.Agent
   'key',                      // -> Https.Agent
   'encoding',                 // -> whether to handle response payload as binary (`encoding=null` only expected value)
-  `aws`,                      // -> No conversion
+  `aws`,                      // aws.key and aws.secret -> aws4.sign generated headers
 ];
 
 function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
