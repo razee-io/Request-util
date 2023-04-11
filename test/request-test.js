@@ -311,4 +311,72 @@ describe('request', () => {
       }
     });
   });
+
+  describe('doRequestRetry', () => {
+    it('should handle GET with one retry', (done) => {
+      const testPayload = { testKey: 'testVal' };
+
+      // Start nock, returning 500 first, then 200
+      nock('https://localhost:666')
+        .get('/testEndpoint')
+        .reply(500, testPayload)
+        .get('/testEndpoint')
+        .reply(200, testPayload);
+
+      try {
+        // Make request max ONE attampt, verify response is 500
+        RequestLib.doRequestRetry({
+          method: 'get',
+          baseUrl: 'https://localhost:666',
+          uri: '/testEndpoint',
+          resolveWithFullResponse: true,
+          json: true,
+          simple: false,
+          maxAttempts: 1,
+          retryDelay: 1
+        }).then( response => {
+          assert.equal( response.statusCode, 500 );
+          assert.deepEqual( response.body, testPayload );
+          done();
+        }).catch( error => {
+          assert.fail(`Promise was rejected: ${error}`);
+        } );
+      } catch (err) {
+        assert.fail(`Error was thrown: ${err}`);
+      }
+    });
+    it('should handle GET with two retries', (done) => {
+      const testPayload = { testKey: 'testVal' };
+
+      // Start nock, returning 500 first, then 200
+      nock('https://localhost:666')
+        .get('/testEndpoint')
+        .reply(500, testPayload)
+        .get('/testEndpoint')
+        .reply(200, testPayload);
+
+      try {
+        // Make request max TWO attampts, verify response is 200
+        RequestLib.doRequestRetry({
+          method: 'get',
+          baseUrl: 'https://localhost:666',
+          uri: '/testEndpoint',
+          resolveWithFullResponse: true,
+          json: true,
+          simple: false,
+          maxAttempts: 2,
+          retryDelay: 1
+        }).then( response => {
+          assert.equal( response.statusCode, 200 );
+          assert.deepEqual( response.body, testPayload );
+          done();
+        }).catch( error => {
+          assert.fail(`Promise was rejected: ${error}`);
+        } );
+      } catch (err) {
+        assert.fail(`Error was thrown: ${err}`);
+      }
+    });
+  });
+
 });
