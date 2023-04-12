@@ -97,7 +97,7 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
   // Delete headers with value `undefined` and `NULL`
   if( axiosOptions.headers ) {
     for( const headerName of Object.getOwnPropertyNames( axiosOptions.headers ) ) {
-      if( axiosOptions.headers[headerName] === 'undefined' || axiosOptions.headers[headerName] === null ) {
+      if( axiosOptions.headers[headerName] === undefined || axiosOptions.headers[headerName] === null ) {
         delete axiosOptions.headers[headerName];
       }
     }
