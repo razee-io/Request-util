@@ -352,13 +352,6 @@ describe('request', () => {
     });
 
     it('should handle GET with invalid AWS options', (done) => {
-      const testPayload = { testKey: 'testVal' };
-
-      // Start nock, returning testPayload
-      nock('https://localhost:666')
-        .get('/testEndpoint')
-        .reply(409, testPayload);
-
       try {
         // Make request, verify response
         RequestLib.doRequest({
