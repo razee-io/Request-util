@@ -310,6 +310,79 @@ describe('request', () => {
         assert.fail(`Error was thrown: ${err}`);
       }
     });
+
+    it('should handle GET with standard AWS options (json:true, simple:false, full:true, aws: { key, secret, sign_version: 4 }, headers: {})', (done) => {
+      const testPayload = { testKey: 'testVal' };
+
+      // Start nock, returning testPayload
+      nock('https://localhost:666')
+        .get('/testEndpoint')
+        .reply(409, testPayload);
+
+      try {
+        // Make request, verify response
+        RequestLib.doRequest({
+          method: 'get',
+          baseUrl: 'https://localhost:666',
+          uri: '/testEndpoint',
+          resolveWithFullResponse: true,
+          json: true,
+          simple: false,
+          aws: {
+            key: 'key',
+            secret: 'secret',
+            sign_version: 4,
+          },
+          headers:{}
+        }).then( response => {
+          try {
+            assert.equal( response.statusCode, 409 );
+            assert.deepEqual( response.body, testPayload );
+            done();
+          }
+          catch(err) {
+            done(err);
+          }
+        }).catch( error => {
+          done(error);
+        } );
+      } catch (err) {
+        assert.fail(`Error was thrown: ${err}`);
+      }
+    });
+
+    it('should handle GET with invalid AWS options', (done) => {
+      try {
+        // Make request, verify response
+        RequestLib.doRequest({
+          method: 'get',
+          baseUrl: 'https://localhost:666',
+          uri: '/testEndpoint',
+          resolveWithFullResponse: true,
+          json: true,
+          simple: false,
+          aws: {
+            key: 'key',
+            secret: 'secret',
+            sign_version: 4,
+            foo: 'bar'
+          },
+          headers:{}
+        }).then( response => {
+          done(response);
+        }).catch( error => {
+          try {
+            assert.include( error.toString(), 'Error: Invalid aws options: foo' );
+            done();
+          }
+          catch(err) {
+            done(err);
+          }
+        } );
+      } catch (err) {
+        assert.fail(`Error was thrown: ${err}`);
+      }
+    });
   });
 
   describe('doRequestRetry', () => {

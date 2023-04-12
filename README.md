@@ -9,7 +9,7 @@ Instead, the **expected** arguments are converted and used with `axios`, e.g.:
 - `uri` --> `url`
 - `qs` --> `params`
 - etc (see `src/request.js` for full details)
-- `aws` is **NOT** yet supported
+- `aws` aws.key and aws.secret -> aws4.sign generated headers
 
 Similarly, the response is modified to include attributes expected on a `request` response, e.g.:
 

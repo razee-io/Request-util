@@ -25,6 +25,7 @@ const Https = require('https');
 const Stream = require('stream');
 const merge = require('deepmerge');
 const bunyan = require('bunyan');
+const aws4 = require('aws4');
 
 const defaultLogger = (() => {
   try {
@@ -54,7 +55,7 @@ const allowedRequestOptions = [
   'baseUrl',                  // -> baseURL
   'uri',                      // -> url
   'url',                      // No conversion
-  'headers',                  // No conversion (but some addition as necesssary)
+  'headers',                  // Delete 'undefined' and 'null' value headers, add specific headers as necessary
   'qs',                       // -> params
   'body',                     // -> data
   'form',                     // -> data
@@ -67,6 +68,7 @@ const allowedRequestOptions = [
   'cert',                     // -> Https.Agent
   'key',                      // -> Https.Agent
   'encoding',                 // -> whether to handle response payload as binary (`encoding=null` only expected value)
+  'aws',                      // aws.key and aws.secret -> aws4.sign generated headers
 ];
 
 function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
@@ -96,6 +98,15 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     delete axiosOptions.baseUrl;
   }
   
+  // Delete headers with value `undefined` and `NULL`
+  if( axiosOptions.headers ) {
+    for( const headerName of Object.getOwnPropertyNames( axiosOptions.headers ) ) {
+      if( axiosOptions.headers[headerName] === undefined || axiosOptions.headers[headerName] === null ) {
+        delete axiosOptions.headers[headerName];
+      }
+    }
+  }
+
   // qs -> params
   if( axiosOptions.qs ) {
     axiosOptions.params = axiosOptions.qs;
@@ -177,6 +188,44 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
       agentOptions.key = axiosOptions.key;
     }
     axiosOptions.httpsAgent = new Https.Agent(agentOptions);
+  }
+
+  // AWS4 options
+  if( axiosOptions.aws && axiosOptions.aws.key && axiosOptions.aws.secret ) {
+    // Only the `aws.key`, `aws.secret`, and `sign_version` options are supported at this time -- ensure any other options result in an exception
+    const invalidAWSOptions = Object.getOwnPropertyNames( axiosOptions.aws ).filter( n => !['key', 'secret', 'sign_version'].includes( n ) );
+    if( axiosOptions.aws.sign_version && axiosOptions.aws.sign_version != 4 ) {
+      logger.error( `Unsupported aws version could not be converted to axios options: ${axiosOptions.aws.sign_version}` );
+      throw new Error( `Invalid aws version: ${axiosOptions.aws.sign_version}` );
+    }
+    if ( invalidAWSOptions.length > 0 ) {
+      logger.error( `Unsupported aws options could not be converted to axios options: ${invalidAWSOptions.join(',')}` );
+      throw new Error( `Invalid aws options: ${invalidAWSOptions.join(',')}` );
+    }
+    
+    // The URL host and path does not come naturally; it is parsed using the node.js `URL` library
+    // The `AWS4` library requires an uppercase method to run properly, unlike request-util
+    const urlObj = new URL(axiosOptions.url, axiosOptions.baseURL);
+    const options = {
+      host: urlObj.host,
+      path: urlObj.pathname,
+      method: axiosOptions.method.toUpperCase(),
+      headers: axiosOptions.headers,
+      body: axiosOptions.data
+    };
+
+    // Add AWS4 `Authorization` and `X-Amz-Date` headers into axiosOptions headers
+    const signRes = aws4.sign(options, {
+      accessKeyId: axiosOptions.aws.key,
+      secretAccessKey: axiosOptions.aws.secret
+    });
+
+    // The original request module converted uppercase AWS4 headers to lowercase. Add in lowercase headers to ensure functionality
+    axiosOptions.headers['authorization'] = signRes.headers.Authorization;
+    axiosOptions.headers['x-amz-date'] = signRes.headers['X-Amz-Date'];
+    if (signRes.headers['X-Amz-Security-Token']) {
+      axiosOptions.headers['x-amz-security-token'] = signRes.headers['X-Amz-Security-Token'];
+    }
   }
   delete axiosOptions.agent;
   delete axiosOptions.ca;
