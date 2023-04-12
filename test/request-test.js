@@ -335,11 +335,16 @@ describe('request', () => {
           },
           headers:{}
         }).then( response => {
-          assert.equal( response.statusCode, 409 );
-          assert.deepEqual( response.body, testPayload );
-          done();
+          try {
+            assert.equal( response.statusCode, 409 );
+            assert.deepEqual( response.body, testPayload );
+            done();
+          }
+          catch(err) {
+            done(err);
+          }
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done(error);
         } );
       } catch (err) {
         assert.fail(`Error was thrown: ${err}`);
@@ -371,10 +376,15 @@ describe('request', () => {
           },
           headers:{}
         }).then( response => {
-          assert.fail(`Promise resolved despite 409 response code: ${response}`);
+          done(response);
         }).catch( error => {
-          assert.include( error.toString(), 'Error: Invalid aws options: foo' );
-          done();
+          try {
+            assert.include( error.toString(), 'Error: Invalid aws options: foo' );
+            done();
+          }
+          catch(err) {
+            done(err);
+          }
         } );
       } catch (err) {
         assert.fail(`Error was thrown: ${err}`);
