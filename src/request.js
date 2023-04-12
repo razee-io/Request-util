@@ -201,10 +201,10 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     
     // The URL host and path does not come naturally; it is parsed using the node.js `URL` library
     // The `AWS4` library requires an uppercase method to run properly, unlike request-util
-    const urlObj = url.parse(axiosOptions.url, true);
+    const urlObj = new URL(axiosOptions.url);
     const options = {
       host: urlObj.host,
-      path: urlObj.path,
+      path: urlObj.pathname,
       method: axiosOptions.method.toUpperCase(),
       headers: axiosOptions.headers,
       body: axiosOptions.data
