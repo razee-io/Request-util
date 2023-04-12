@@ -55,7 +55,7 @@ const allowedRequestOptions = [
   'baseUrl',                  // -> baseURL
   'uri',                      // -> url
   'url',                      // No conversion
-  'headers',                  // Delete 'undefined' and 'null value headers
+  'headers',                  // Delete 'undefined' and 'null' value headers, add specific headers as necessary
   'qs',                       // -> params
   'body',                     // -> data
   'form',                     // -> data
