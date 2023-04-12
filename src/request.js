@@ -25,7 +25,6 @@ const Stream = require('stream');
 const merge = require('deepmerge');
 const bunyan = require('bunyan');
 const aws4 = require('aws4');
-const url = require('url');
 
 const defaultLogger = (() => {
   try {
