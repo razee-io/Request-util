@@ -35,9 +35,11 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "aws4": "^1.12.0",
     "axios": "^1.3.4",
     "bunyan": "^1.8.15",
-    "deepmerge": "^4.2.2"
+    "deepmerge": "^4.2.2",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "chai": "^4.3.6",
