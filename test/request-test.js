@@ -310,5 +310,75 @@ describe('request', () => {
         assert.fail(`Error was thrown: ${err}`);
       }
     });
+
+    it('should handle GET with standard AWS options (json:true, simple:false, full:true, aws: { key, secret, sign_version: 4 }, headers: {})', (done) => {
+      const testPayload = { testKey: 'testVal' };
+
+      // Start nock, returning testPayload
+      nock('https://localhost:666')
+        .get('/testEndpoint')
+        .reply(409, testPayload);
+
+      try {
+        // Make request, verify response
+        RequestLib.doRequest({
+          method: 'get',
+          baseUrl: 'https://localhost:666',
+          uri: '/testEndpoint',
+          resolveWithFullResponse: true,
+          json: true,
+          simple: false,
+          aws: {
+            key: 'key',
+            secret: 'secret',
+            sign_version: 4,
+          },
+          headers:{}
+        }).then( response => {
+          assert.equal( response.statusCode, 409 );
+          assert.deepEqual( response.body, testPayload );
+          done();
+        }).catch( error => {
+          assert.fail(`Promise was rejected: ${error}`);
+        } );
+      } catch (err) {
+        assert.fail(`Error was thrown: ${err}`);
+      }
+    });
+
+    it('should handle GET with invalid AWS options', (done) => {
+      const testPayload = { testKey: 'testVal' };
+
+      // Start nock, returning testPayload
+      nock('https://localhost:666')
+        .get('/testEndpoint')
+        .reply(409, testPayload);
+
+      try {
+        // Make request, verify response
+        RequestLib.doRequest({
+          method: 'get',
+          baseUrl: 'https://localhost:666',
+          uri: '/testEndpoint',
+          resolveWithFullResponse: true,
+          json: true,
+          simple: false,
+          aws: {
+            key: 'key',
+            secret: 'secret',
+            sign_version: 4,
+            foo: 'bar'
+          },
+          headers:{}
+        }).then( response => {
+          assert.fail(`Promise resolved despite 409 response code: ${response}`);
+        }).catch( error => {
+          assert.include( error.toString(), 'Error: Invalid aws options: foo' );
+          done();
+        } );
+      } catch (err) {
+        assert.fail(`Error was thrown: ${err}`);
+      }
+    });
   });
 });
