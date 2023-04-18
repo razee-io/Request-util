@@ -261,15 +261,15 @@ function axiosResponse_to_requestResponse( requestOptions, axiosResponse ) {
 }
 
 function axiosErr_to_requestErr( axiosErr ) {
-  // status -> statusCode
-  // statusText -> statusMessage
-  // data -> content
+  // response.status -> response.statusCode
+  // response.statusText -> response.statusMessage
+  // response.data -> content
   axiosErr.response.statusCode = axiosErr.response.status;
   axiosErr.response.statusMessage = axiosErr.response.statusText;
-  axiosErr.content = axiosErr.data;
+  axiosErr.content = axiosErr.response.data;
   delete axiosErr.response.status;
   delete axiosErr.response.statusText;
-  delete axiosErr.data;
+  delete axiosErr.response.data;
 
   return axiosErr;
 }

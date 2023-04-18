@@ -97,7 +97,7 @@ describe('request', () => {
             done();
           } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
   });
@@ -125,14 +125,14 @@ describe('request', () => {
           assert.deepEqual( response.body, testPayload );
           done();
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done( error );
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
 
-    it('should handle GET with simple:true', (done) => {
+    it('should handle failed GET with simple:true as an error, with conversion', (done) => {
       const testPayload = { testKey: 'testVal' };
 
       // Start nock, returning testPayload
@@ -150,13 +150,13 @@ describe('request', () => {
           json: true,
           simple: true,
         }).then( response => {
-          assert.fail(`Promise resolved despite 409 response code: ${response}`);
+          done( new Error(`Promise resolved despite 409 response code: ${response}`) );
         }).catch( error => {
-          assert.include( error.toString(), '409' );
+          assert.equal( error.response.statusCode, 409, 'Response error statusCode was not converted' );
           done();
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
 
@@ -181,10 +181,10 @@ describe('request', () => {
           assert.deepEqual( response, testPayload );
           done();
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done( error );
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
 
@@ -210,10 +210,10 @@ describe('request', () => {
           assert.deepEqual( response.body, testPayload );
           done();
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done( error );
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
 
@@ -240,10 +240,10 @@ describe('request', () => {
           assert.deepEqual( response.body, testPayload );
           done();
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done( error );
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
 
@@ -269,10 +269,10 @@ describe('request', () => {
           assert.deepEqual( response.body, testPayload );
           done();
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done( error );
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
 
@@ -304,10 +304,10 @@ describe('request', () => {
           assert.deepEqual( response.body, testPayload );
           done();
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done( error );
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
 
@@ -347,7 +347,7 @@ describe('request', () => {
           done(error);
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
 
@@ -380,7 +380,7 @@ describe('request', () => {
           }
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
   });
@@ -412,10 +412,10 @@ describe('request', () => {
           assert.deepEqual( response.body, testPayload );
           done();
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done( error );
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
     it('should handle GET with two retries', (done) => {
@@ -444,10 +444,10 @@ describe('request', () => {
           assert.deepEqual( response.body, testPayload );
           done();
         }).catch( error => {
-          assert.fail(`Promise was rejected: ${error}`);
+          done( error );
         } );
       } catch (err) {
-        assert.fail(`Error was thrown: ${err}`);
+        done( err );
       }
     });
   });
