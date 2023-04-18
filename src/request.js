@@ -260,6 +260,20 @@ function axiosResponse_to_requestResponse( requestOptions, axiosResponse ) {
   return( requestOptions.resolveWithFullResponse ? requestResponse : requestResponse.body );
 }
 
+function axiosErr_to_requestErr( axiosErr ) {
+  // status -> statusCode
+  // statusText -> statusMessage
+  // data -> content
+  axiosErr.response.statusCode = axiosErr.response.status;
+  axiosErr.response.statusMessage = axiosErr.response.statusText;
+  axiosErr.content = axiosErr.data;
+  delete axiosErr.response.status;
+  delete axiosErr.response.statusText;
+  delete axiosErr.data;
+
+  return axiosErr;
+}
+
 function getStream( requestOptions, logger=defaultLogger ) {
   //COMPARE const useLegacyRequest = fs.pathExistsSync(`./${requestTriggerFile}`);
   //COMPARE if( useLegacyRequest ) {
@@ -309,7 +323,14 @@ async function doRequest( requestOptions, logger=defaultLogger ) {
   //COMPARE }
 
   const axiosOptions = requestOpts_to_axiosOpts( requestOptions, logger );
-  const axiosResponse = await axios( axiosOptions );
+  let axiosResponse;
+  try {
+    axiosResponse = await axios( axiosOptions );
+  }
+  catch(e) {
+    const requestErr = axiosErr_to_requestErr( e );
+    throw( requestErr );
+  }
   const requestResponse = axiosResponse_to_requestResponse( requestOptions, axiosResponse );
   return( requestResponse );
 }
