@@ -69,9 +69,14 @@ const allowedRequestOptions = [
   'key',                      // -> Https.Agent
   'encoding',                 // -> whether to handle response payload as binary (`encoding=null` only expected value)
   'aws',                      // aws.key and aws.secret -> aws4.sign generated headers
+  'status',                   // -> deleted (could be passed from KubeApiConfig, should be ignored)
 ];
 
 function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
+  // agent cannot be cloned
+  const origAgent = requestOptions.agent;
+  delete requestOptions.agent;
+
   const invalidRequestOptions = Object.getOwnPropertyNames( requestOptions ).filter( n => !allowedRequestOptions.includes( n ) );
   if( invalidRequestOptions.length > 0 ) {
     logger.error( `Unsupported request options could not be converted to axios options: ${invalidRequestOptions.join(',')}` );
@@ -85,6 +90,9 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     method: 'get',
     simple: true
   }, requestOptions );
+
+  // agent cannot be cloned, restore from original if set
+  if( origAgent ) axiosOptions.agent = origAgent;
 
   // uri -> url
   if( axiosOptions.uri ) {
@@ -189,6 +197,10 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     }
     axiosOptions.httpsAgent = new Https.Agent(agentOptions);
   }
+  delete axiosOptions.agent;
+  delete axiosOptions.ca;
+  delete axiosOptions.cert;
+  delete axiosOptions.key;
 
   // AWS4 options
   if( axiosOptions.aws && axiosOptions.aws.key && axiosOptions.aws.secret ) {
@@ -227,10 +239,9 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
       axiosOptions.headers['x-amz-security-token'] = signRes.headers['X-Amz-Security-Token'];
     }
   }
-  delete axiosOptions.agent;
-  delete axiosOptions.ca;
-  delete axiosOptions.cert;
-  delete axiosOptions.key;
+
+  // status -> deleted
+  delete axiosOptions.status;
 
   return axiosOptions;
 }
@@ -338,13 +349,17 @@ async function doRequest( requestOptions, logger=defaultLogger ) {
 /*
 Do a request with `requestretry` library options
 The retry strategy used is always equivalent to `request.RetryStrategies.HTTPOrNetworkError`,
-i.e. "(default) retry on 5xx or network errors"
+i.e. `(default) retry on 5xx or network errors`
 */
 async function doRequestRetry( requestRetryOptions, logger=defaultLogger ) {
   //COMPARE const useLegacyRequest = await fs.pathExists(`./${requestTriggerFile}`);
   //COMPARE if( useLegacyRequest ) {
   //COMPARE return requestretry( requestRetryOptions );
   //COMPARE }
+
+  // agent cannot be cloned
+  const origAgent = requestRetryOptions.agent;
+  delete requestRetryOptions.agent;
 
   /*
   Convert to `request` library options (the `requestretry` lib always returns full response
@@ -354,6 +369,9 @@ async function doRequestRetry( requestRetryOptions, logger=defaultLogger ) {
   delete requestOptions.retryDelay;
   delete requestOptions.maxAttempts;
   delete requestOptions.retryStrategy;
+  
+  // agent cannot be cloned, restore from original if set
+  if( origAgent ) requestOptions.agent = origAgent;
 
   // Convert to `axios` library options
   const axiosOptions = requestOpts_to_axiosOpts( requestOptions, logger );
