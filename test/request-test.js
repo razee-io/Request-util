@@ -161,8 +161,6 @@ describe('request', () => {
     });
 
     it('should handle failed GET as an error', (done) => {
-      const testPayload = { testKey: 'testVal' };
-
       // Start nock, returning testPayload
       nock('https://localhost:666')
         .get('/testEndpoint')
