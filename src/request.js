@@ -131,7 +131,7 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
       axiosOptions.data = axiosOptions.body;
       delete axiosOptions.body;
       // If `content-type` is not explicitly set, set it
-      if( !axiosOptions.headers['content-type'] ) {
+      if( !axiosOptions.headers || !axiosOptions.headers['content-type'] ) {
         // It is allowable with the `request` library to POST with both `body` and `json` (body as payload, json as boolean indicating payload type)
         // or with just `json` (json as payload), hence else/if structure checking for `body` first.
         if( axiosOptions.json ) {
@@ -147,7 +147,7 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
       axiosOptions.data = axiosOptions.form;
       delete axiosOptions.form;
       // If `content-type` is not explicitly set, set it
-      if( !axiosOptions.headers['content-type'] ) {
+      if( !axiosOptions.headers || !axiosOptions.headers['content-type'] ) {
         axiosOptions.headers = merge( axiosOptions.headers || {}, { 'content-type': 'application/x-www-form-urlencoded' } );
       }
     }
@@ -156,7 +156,7 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
       axiosOptions.data = axiosOptions.json;
       delete axiosOptions.json;
       // If `content-type` is not explicitly set, set it
-      if( !axiosOptions.headers['content-type'] ) {
+      if( !axiosOptions.headers || !axiosOptions.headers['content-type'] ) {
         axiosOptions.headers = merge( axiosOptions.headers, {'content-type': 'application/json'} );
       }
     }
