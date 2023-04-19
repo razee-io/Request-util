@@ -132,7 +132,7 @@ describe('request', () => {
       }
     });
 
-    it('should handle failed GET with simple:true as an error, with conversion', (done) => {
+    it('should handle GET http error response with simple:true as an error, with conversion', (done) => {
       const testPayload = { testKey: 'testVal' };
 
       // Start nock, returning testPayload
@@ -153,6 +153,32 @@ describe('request', () => {
           done( new Error(`Promise resolved despite 409 response code: ${response}`) );
         }).catch( error => {
           assert.equal( error.response.statusCode, 409, 'Response error statusCode was not converted' );
+          done();
+        } );
+      } catch (err) {
+        done( err );
+      }
+    });
+
+    it('should handle failed GET as an error', (done) => {
+      // Start nock, returning testPayload
+      nock('https://localhost:666')
+        .get('/testEndpoint')
+        .replyWithError('bad things happened man');
+
+      try {
+        // Make request, verify response
+        RequestLib.doRequest({
+          method: 'get',
+          baseUrl: 'https://localhost:666',
+          uri: '/testEndpoint',
+          resolveWithFullResponse: true,
+          json: true,
+          simple: false,
+        }).then( response => {
+          done( new Error(`Promise resolved despite reply error: ${response}`) );
+        }).catch( error => {
+          assert.strictEqual(error.message, 'bad things happened man', 'Exception should be the bad response');
           done();
         } );
       } catch (err) {
