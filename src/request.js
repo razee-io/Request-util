@@ -106,7 +106,7 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     delete axiosOptions.baseUrl;
   }
   
-  // Delete headers with value `undefined` and `NULL`, convert the rest to lowercase (for convenience of later checks -- headers are case-insensitive per RFC 2616)
+  // Delete headers with value `undefined` and `NULL`, convert the rest of the _keys_ to lowercase (for convenience of later checks -- headers are case-insensitive per RFC 2616)
   if( axiosOptions.headers ) {
     for( const headerName of Object.getOwnPropertyNames( axiosOptions.headers ) ) {
       if( axiosOptions.headers[headerName] === undefined || axiosOptions.headers[headerName] === null ) {
