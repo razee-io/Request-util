@@ -106,10 +106,14 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     delete axiosOptions.baseUrl;
   }
   
-  // Delete headers with value `undefined` and `NULL`
+  // Delete headers with value `undefined` and `NULL`, convert the rest of the _keys_ to lowercase (for convenience of later checks -- headers are case-insensitive per RFC 2616)
   if( axiosOptions.headers ) {
     for( const headerName of Object.getOwnPropertyNames( axiosOptions.headers ) ) {
       if( axiosOptions.headers[headerName] === undefined || axiosOptions.headers[headerName] === null ) {
+        delete axiosOptions.headers[headerName];
+      }
+      else if( headerName != headerName.toLowerCase() ) {
+        axiosOptions.headers[headerName.toLowerCase()] = axiosOptions.headers[headerName];
         delete axiosOptions.headers[headerName];
       }
     }
@@ -126,26 +130,35 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     if( axiosOptions.body ) {
       axiosOptions.data = axiosOptions.body;
       delete axiosOptions.body;
-      // It is allowable with the `request` library to POST with both `body` and `json` (body as payload, json as boolean indicating payload type)
-      // or with just `json` (json as payload), hence else/if structure checking for `body` first.
-      if( axiosOptions.json ) {
-        axiosOptions.headers = merge( axiosOptions.headers, {'Content-Type': 'application/json'} );
-      }
-      else {
-        axiosOptions.headers = merge( axiosOptions.headers, {'Content-Type': 'text/plain'} );
+      // If `content-type` is not explicitly set, set it
+      if( !axiosOptions.headers || !axiosOptions.headers['content-type'] ) {
+        // It is allowable with the `request` library to POST with both `body` and `json` (body as payload, json as boolean indicating payload type)
+        // or with just `json` (json as payload), hence else/if structure checking for `body` first.
+        if( axiosOptions.json ) {
+          axiosOptions.headers = merge( axiosOptions.headers, {'content-type': 'application/json'} );
+        }
+        else {
+          axiosOptions.headers = merge( axiosOptions.headers, {'content-type': 'text/plain'} );
+        }
       }
     }
     // form -> data
     else if( axiosOptions.form ) {
       axiosOptions.data = axiosOptions.form;
       delete axiosOptions.form;
-      axiosOptions.headers = merge( axiosOptions.headers || {}, { 'Content-Type': 'application/x-www-form-urlencoded' } );
+      // If `content-type` is not explicitly set, set it
+      if( !axiosOptions.headers || !axiosOptions.headers['content-type'] ) {
+        axiosOptions.headers = merge( axiosOptions.headers || {}, { 'content-type': 'application/x-www-form-urlencoded' } );
+      }
     }
     // json -> data
     else if( axiosOptions.json ) {
       axiosOptions.data = axiosOptions.json;
       delete axiosOptions.json;
-      axiosOptions.headers = merge( axiosOptions.headers, {'Content-Type': 'application/json'} );
+      // If `content-type` is not explicitly set, set it
+      if( !axiosOptions.headers || !axiosOptions.headers['content-type'] ) {
+        axiosOptions.headers = merge( axiosOptions.headers, {'content-type': 'application/json'} );
+      }
     }
 
     // PUT/POST/PATCH/DELETE response is expected to be json
