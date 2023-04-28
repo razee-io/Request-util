@@ -20,7 +20,14 @@
 //COMPARE const requestPromiseNative = require('request-promise-native');
 //COMPARE const requestTriggerFile = 'USE_LEGACY_REQUEST_LIBRARY';
 
-const axios = require('axios');
+let axios;
+try {
+  axios = require('axios');
+}catch(err){
+  // sometimes it tries to load the esm version of axios, even thought we're doing a require(). i cant figure out why.
+  // ideally we'd migrate everything to esm so we dont have to deal with these cjs problems anymore.
+  axios = require('axios/dist/node/axios.cjs');
+}
 const Https = require('https');
 const Stream = require('stream');
 const merge = require('deepmerge');
