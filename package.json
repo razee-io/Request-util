@@ -4,6 +4,7 @@
   "description": "A set of utilities to facilitate migrating from the deprecated request library to a supported library such as Axios",
   "author": "Paul Carroll",
   "main": "src/request.js",
+  "type": "commonjs",
   "keywords": [
     "request",
     "request-promise-native",
