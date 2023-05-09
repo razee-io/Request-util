@@ -359,7 +359,7 @@ describe('request', () => {
             secret: 'secret',
             sign_version: 4,
           },
-          headers:{}
+          // headers:{}  -- Should succeed even if headers not specified at all
         }).then( response => {
           try {
             assert.equal( response.statusCode, 409 );

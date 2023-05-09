@@ -246,6 +246,7 @@ function requestOpts_to_axiosOpts( requestOptions, logger=defaultLogger ) {
     });
 
     // The original request module converted uppercase AWS4 headers to lowercase. Add in lowercase headers to ensure functionality
+    axiosOptions.headers = axiosOptions.headers || {}; // Ensure headers attribute exists
     axiosOptions.headers['authorization'] = signRes.headers.Authorization;
     axiosOptions.headers['x-amz-date'] = signRes.headers['X-Amz-Date'];
     if (signRes.headers['X-Amz-Security-Token']) {
