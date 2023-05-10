@@ -288,16 +288,26 @@ function axiosResponse_to_requestResponse( requestOptions, axiosResponse ) {
 function axiosErr_to_requestErr( axiosErr ) {
   // If http error response was received, convert
   if( axiosErr.response ) {
-    // response.status -> response.statusCode
+    // response.status -> response.statusCode and statusCode
     // response.statusText -> response.statusMessage
     // response.data -> content
     axiosErr.response.statusCode = axiosErr.response.status;
+    axiosErr.statusCode = axiosErr.response.status;
     axiosErr.response.statusMessage = axiosErr.response.statusText;
     axiosErr.content = axiosErr.response.data;
     delete axiosErr.response.status;
     delete axiosErr.response.statusText;
     delete axiosErr.response.data;
   }
+
+  /*
+  Note: Axios overrides toJson, so `JSON.stringify( err )` will not show key attributes:
+  - request
+  - response
+  - statusCode
+  - content
+  Nevertheless, `err.statusCode` will return the request-style value.
+  */
 
   return axiosErr;
 }
