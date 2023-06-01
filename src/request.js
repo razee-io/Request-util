@@ -309,6 +309,9 @@ function axiosErr_to_requestErr( axiosErr ) {
   Nevertheless, `err.statusCode` will return the request-style value.
   */
 
+  // Some code will look for e.error.message and e.error.code from request errors
+  axiosErr.error = axiosErr.content;
+
   return axiosErr;
 }
 
