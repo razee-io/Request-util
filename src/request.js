@@ -298,6 +298,11 @@ function axiosErr_to_requestErr( axiosErr ) {
     delete axiosErr.response.status;
     delete axiosErr.response.statusText;
     delete axiosErr.response.data;
+
+    // Headers often include sensitive information such as authorization tokens.  Redact to prevent accidental disclosure.
+    if( axiosErr.config?.headers ) {
+      axiosErr.config.headers = new axios.AxiosHeaders( { 'REDACTED': true } );
+    }
   }
 
   /*

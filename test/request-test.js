@@ -132,7 +132,7 @@ describe('request', () => {
       }
     });
 
-    it('should handle GET http error response with simple:true as an error, with conversion', (done) => {
+    it('should handle GET http error response with simple:true as an error, with conversion and header redaction', (done) => {
       const testPayload = { testKey: 'testVal' };
 
       // Start nock, returning testPayload
@@ -149,12 +149,14 @@ describe('request', () => {
           resolveWithFullResponse: true,
           json: true,
           simple: true,
+          headers:{ 'sensitive-header': 'sensitive-value' }
         }).then( response => {
           done( new Error(`Promise resolved despite 409 response code: ${response}`) );
         }).catch( error => {
           assert.equal( error.response.statusCode, 409, 'Response error statusCode was not converted' );
+          assert.notInclude( JSON.stringify(error), 'sensitive-value', 'Response error did not have headers redacted' );
           done();
-        } );
+        });
       } catch (err) {
         done( err );
       }
