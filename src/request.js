@@ -281,6 +281,14 @@ function axiosResponse_to_requestResponse( requestOptions, axiosResponse ) {
   }
   delete requestResponse.data;
 
+  // Redact anything that could expose sensitive information such as headers (especially 'config', 'request', 'headers' properties)
+  const allowedResponseProperties = ['url', 'method', 'statusCode', 'statusMessage', 'body'];
+  for( const propertyName of Object.getOwnPropertyNames(requestResponse) ) {
+    if( !allowedResponseProperties.includes( propertyName) ) {
+      requestResponse[propertyName] = '[REDACTED]';
+    }
+  }
+
   // Return full response (with statusCode etc) or just the payload
   return( requestOptions.resolveWithFullResponse ? requestResponse : requestResponse.body );
 }
@@ -298,11 +306,6 @@ function axiosErr_to_requestErr( axiosErr ) {
     delete axiosErr.response.status;
     delete axiosErr.response.statusText;
     delete axiosErr.response.data;
-
-    // Headers often include sensitive information such as authorization tokens.  Redact to prevent accidental disclosure.
-    if( axiosErr.config?.headers ) {
-      axiosErr.config.headers = new axios.AxiosHeaders( { 'REDACTED': true } );
-    }
   }
 
   /*
@@ -317,6 +320,15 @@ function axiosErr_to_requestErr( axiosErr ) {
   // Some code will look for e.error.message and e.error.code from request errors
   axiosErr.error = axiosErr.content;
 
+  // Redact anything that could expose sensitive information such as headers (especially 'config', 'request', 'headers' properties)
+  const sensitiveProperties = ['config', 'request', 'headers'];
+  for( const propertyName of sensitiveProperties ) {
+    axiosErr[propertyName] = '[REDACTED]';
+    if( axiosErr.response ) {
+      axiosErr.response[propertyName] = '[REDACTED]';
+    }
+  }
+  
   return axiosErr;
 }
 
