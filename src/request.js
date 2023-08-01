@@ -285,7 +285,7 @@ function axiosResponse_to_requestResponse( requestOptions, axiosResponse ) {
   const allowedResponseProperties = ['url', 'method', 'statusCode', 'statusMessage', 'body'];
   for( const propertyName of Object.getOwnPropertyNames(requestResponse) ) {
     if( !allowedResponseProperties.includes( propertyName) ) {
-      requestResponse[ propertyName ] = '[REDACTED]';
+      requestResponse[propertyName] = '[REDACTED]';
     }
   }
 
