@@ -368,9 +368,9 @@ function getStream( requestOptions, logger=defaultLogger ) {
       }
     );
   } )
-  .catch( (err) => {
-    throw axiosErr_to_requestErr( err );
-  } );
+    .catch( (err) => {
+      throw axiosErr_to_requestErr( err );
+    } );
 
   // Return the axios stream without waiting for request
   return axiosStream;
