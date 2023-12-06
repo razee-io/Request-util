@@ -369,6 +369,7 @@ function getStream( requestOptions, logger=defaultLogger ) {
     );
   } )
     .catch( (err) => {
+      // If there was an error thrown opening the axios request, make sure it is converted/redacted before throwing it.
       throw axiosErr_to_requestErr( err );
     } );
 
@@ -389,6 +390,7 @@ async function doRequest( requestOptions, logger=defaultLogger ) {
     axiosResponse = await axios( axiosOptions );
   }
   catch(e) {
+    // If there was an error thrown opening the axios request, make sure it is converted/redacted before throwing it.
     const requestErr = axiosErr_to_requestErr( e );
     throw( requestErr );
   }
@@ -450,7 +452,8 @@ async function doRequestRetry( requestRetryOptions, logger=defaultLogger ) {
 
   // If last try threw an error, throw it
   if( axiosError ) {
-    throw( axiosErr_to_requestErr( axiosError ) );
+      // If there was an error thrown opening the axios request, make sure it is converted/redacted before throwing it.
+      throw( axiosErr_to_requestErr( axiosError ) );
   }
 
   // If got a good response, or last try was at least a _valid_ responses, return the last response converted to `request` lib format
