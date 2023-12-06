@@ -364,7 +364,7 @@ function getStream( requestOptions, logger=defaultLogger ) {
       requestResponse.body,
       axiosStream,
       (err) => {
-        logger.info( `Stream from ${axiosOptions.url} completed, error: ${err.message}` );
+        logger.info( `Stream from ${axiosOptions.url} completed, error: ${err ? err.message : err}` );
       }
     );
   } )
