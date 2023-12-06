@@ -364,10 +364,14 @@ function getStream( requestOptions, logger=defaultLogger ) {
       requestResponse.body,
       axiosStream,
       (err) => {
-        logger.info( `Stream from ${axiosOptions.url} completed, error: ${err}` );
+        logger.info( `Stream from ${axiosOptions.url} completed, error: ${err.message}` );
       }
     );
-  } );
+  } )
+    .catch( (err) => {
+      // If there was an error thrown opening the axios request, make sure it is converted/redacted before throwing it.
+      throw axiosErr_to_requestErr( err );
+    } );
 
   // Return the axios stream without waiting for request
   return axiosStream;
@@ -386,6 +390,7 @@ async function doRequest( requestOptions, logger=defaultLogger ) {
     axiosResponse = await axios( axiosOptions );
   }
   catch(e) {
+    // If there was an error thrown opening the axios request, make sure it is converted/redacted before throwing it.
     const requestErr = axiosErr_to_requestErr( e );
     throw( requestErr );
   }
@@ -424,21 +429,34 @@ async function doRequestRetry( requestRetryOptions, logger=defaultLogger ) {
   const axiosOptions = requestOpts_to_axiosOpts( requestOptions, logger );
 
   let axiosResponse;
+  let axiosError;
   let triesRemaining = requestRetryOptions.maxAttempts || 5;
   while( triesRemaining-- > 0 ) {
-    // If an error occurs making the request, immediately throw it.
-    axiosResponse = await axios( axiosOptions );
-    if( axiosResponse.status >= 200 && axiosResponse.status < 500 ) {
-      // Got a good response, no more retries
-      break;
+    try {
+      axiosResponse = await axios( axiosOptions );
+      axiosError = null;
+      if( axiosResponse.status >= 200 && axiosResponse.status < 500 ) {
+        // Got a good response, no more retries
+        break;
+      }
     }
-    // Got a bad response but can still retry after a delay
+    catch( err ) {
+      axiosError = err;
+      axiosResponse = null;
+    }
+    // Got a bad response or an error but can still retry after a delay
     if( triesRemaining > 0 ) {
       await new Promise(resolve => setTimeout(resolve, requestRetryOptions.retryDelay || 5000));
     }
   }
 
-  // If got a good response, or ran out of retries but got _valid_ responses, return the last response converted to `request` lib format
+  // If last try threw an error, throw it
+  if( axiosError ) {
+    // If there was an error thrown opening the axios request, make sure it is converted/redacted before throwing it.
+    throw( axiosErr_to_requestErr( axiosError ) );
+  }
+
+  // If got a good response, or last try was at least a _valid_ responses, return the last response converted to `request` lib format
   const requestResponse = axiosResponse_to_requestResponse( requestOptions, axiosResponse );
   return( requestResponse );
 }
